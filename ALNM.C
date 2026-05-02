@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <conio.h>
-#include "c:\esc0.3\windows.c"
+#include <unistd.h>   /* getpass (POSIX, deprecated but still available) */
+#include "WINC.H"
 
 #define TOP 1
 #define MIDLE0 2
@@ -15,9 +15,9 @@
 #define TOPRINTER 102
 #define gxy(x,y) gotoxy((x),(y))
 
-/*Structs das janelas (nÆo ‚ realmente necessario estarem c  em cima*/
+/*Structs das janelas (nï¿½o ï¿½ realmente necessario estarem cï¿½ em cima*/
 struct win middle={ 5,4,75,47,BLUE,GREEN,BLUE,BLACK,WHITE, "Janela Programa",SIMPLES,NULL };
-struct win info={ 10,7,70,40,BLUE,WHITE,BLUE,YELLOW,GREEN, "Informa‡äes",DUPLO,NULL };
+struct win info={ 10,7,70,40,BLUE,WHITE,BLUE,YELLOW,GREEN, "Informaï¿½ï¿½es",DUPLO,NULL };
 struct win ajuda={ 10,7,70,40,BLUE,WHITE,BLUE,YELLOW,GREEN, "Ajuda",DUPLO,NULL };
 
 struct win menus[3]={
@@ -57,7 +57,7 @@ void drawscreen()
 {
 	janela(BOTTOM);
 	clrscr();
-	printf("\     COLGIO DE GAIA  -  NOVEMBRO 2002  -  TIAGO FREITAS & BRUNO MONTEIRO");
+	printf("\     COLï¿½GIO DE GAIA  -  NOVEMBRO 2002  -  TIAGO FREITAS & BRUNO MONTEIRO");
 	janela(TOP);
 	/*MENU1*/
 	gotoxy(2,1);
@@ -76,15 +76,15 @@ void drawscreen()
 
 void showinfo()
 {
-	openwin(&info);
+	openwin(&info, aNO);  /* BUG FIX: added missing anim arg */
 	gxy(1,4);
 	textcolor(YELLOW);
 	cprintf("   Sistema de Alunos ::: Tiago Freitas & Bruno Monteiro   ");
 	gxy(1,13);
 	textcolor(WHITE);
-	cprintf("    Esta Aplica‡Æo controla uma Base de Dados de alunos\n\n\r");
-	cprintf("   com capacidade para armazenar notas, m‚dias, moradas,\n\n\r");
-	cprintf("        telefones, etc... A utiliza‡Æo ‚ simples e \n\n\r");
+	cprintf("    Esta Aplicaï¿½ï¿½o controla uma Base de Dados de alunos\n\n\r");
+	cprintf("   com capacidade para armazenar notas, mï¿½dias, moradas,\n\n\r");
+	cprintf("        telefones, etc... A utilizaï¿½ï¿½o ï¿½ simples e \n\n\r");
 	cprintf("                   minimamente intuitiva. ");
 	gotoxy(1,30);
 	textcolor(LIGHTBLUE);
@@ -95,11 +95,11 @@ void showinfo()
 }
 void showajuda()
 {
-	openwin(&ajuda);
+	openwin(&ajuda, aNO);  /* BUG FIX: added missing anim arg */
 	cprintf("\n\t Sistema de Alunos \n \n \n Tiago Freitas & Bruno Monteiro\r\n\r\n\n\n\n");
 	cprintf("\r\n   Em qualquer campo de texto pode cancelar com o texto CANCEL\r\n");
 	cprintf("\n  No menu, utilize as teclas de cursor para aceder aos diversos menus\r\n");
-	cprintf("\r\n  e pressione ENTER para escolher a op‡Æo. Pode usar as teclas real‡adas\r\n");
+	cprintf("\r\n  e pressione ENTER para escolher a opï¿½ï¿½o. Pode usar as teclas realï¿½adas\r\n");
 	cprintf("\r\n  como atalho para o menu");
 	gxy(1,31);
 	cprintf("                        (Prima ESC para sair desta janela)");
@@ -110,7 +110,7 @@ void showajuda()
 void defpin()
 {
  struct win defpin={20,20,60,27,RED,WHITE,RED,YELLOW,WHITE, "Definir PIN",DUPLO,NULL };
- openwin(&defpin);
+ openwin(&defpin, aNO);  /* BUG FIX: added missing anim arg */
  gxy(2,2);
  getpass  ("PIN ANTIGO:         ");gxy(30,2);
  textcolor(LIGHTBLUE);cprintf("[OK]");textcolor(WHITE);
@@ -121,7 +121,7 @@ void defpin()
 	 getpass("REPETIR PIN NOVO:   ");gxy(30,5);
 	 textcolor(LIGHTBLUE);cprintf("[OK]");textcolor(WHITE);
  delay(500);
- msgbox(OK,CYAN,"PIN Alterado!");
+ msgbox(OK, CYAN, "PIN Alterado!", aNO);   /* BUG FIX: was missing 4th arg */
  closewin(&defpin);
 }
 
@@ -140,7 +140,7 @@ void submenu(int *opmenu,int pos)
 	switch (*opmenu)
 	 {
 		case 0:
-			openwin(&menus[0]);
+			openwin(&menus[0], aNO);  /* BUG FIX: added missing anim arg */
 			textbackground(BLUE);
 			clrscr();
 			cprintf("%c 1. Inserir\r\n",179);
@@ -169,7 +169,7 @@ void submenu(int *opmenu,int pos)
 			{
 			switch (c)
 			{
-				case 27: sopmenu=0;
+				case 27: sopmenu=0; break;  /* BUG FIX: was missing break, fell through to case 72 */
 				/*Para cima*/
 				case 72: sopmenu=(sopmenu==1) ? 7 : sopmenu-1;
 					 break;
@@ -191,7 +191,7 @@ void submenu(int *opmenu,int pos)
 			}
 			break;
 		case 1:
-			openwin(&menus[1]);
+			openwin(&menus[1], aNO);  /* BUG FIX: added missing anim arg */
 
 			textbackground(BLUE);
 			textcolor(WHITE);
@@ -212,7 +212,7 @@ void submenu(int *opmenu,int pos)
 			{
 			switch (c)
 			{
-				case 27: sopmenu=0;
+				case 27: sopmenu=0; break;  /* BUG FIX: was missing break */
 				/*Para cima*/
 				case 72: sopmenu=(sopmenu==1) ? 2 : sopmenu-1;
 					 break;
@@ -229,18 +229,18 @@ void submenu(int *opmenu,int pos)
 			}
 			break;
 		case 2:
-			openwin(&menus[2]);
+			openwin(&menus[2], aNO);  /* BUG FIX: added missing anim arg */
 			textbackground(BLUE);
 			clrscr();
 			cprintf(" 1. Ajuda       %c\r\n",179);
-			cprintf(" 2. Informa‡äes %c",179);
+			cprintf(" 2. Informaï¿½ï¿½es %c",179);
 			textbackground(GREEN);
 			textcolor(WHITE);
 			gxy(2,sopmenu);
 			switch (sopmenu)
 			{
 				case 1: cprintf("1. Ajuda       ",179);   break;
-				case 2: cprintf("2. Informa‡äes ",179);
+				case 2: cprintf("2. Informaï¿½ï¿½es ",179);
 			}
 			c = ((c=getch())==0) ? getch() : c;
 			if (c>=49 && c<=50) sopmenu=c-48;
@@ -248,7 +248,7 @@ void submenu(int *opmenu,int pos)
 			{
 			switch (c)
 			{
-				case 27: sopmenu=0;
+				case 27: sopmenu=0; break;  /* BUG FIX: was missing break */
 				/*Para cima*/
 				case 72: sopmenu=(sopmenu==1) ? 2 : sopmenu-1;
 					 break;
@@ -259,7 +259,7 @@ void submenu(int *opmenu,int pos)
 					 switch (sopmenu)
 					 {
 			 case 1:closewin(&menus[2]);showajuda();break;/*ajuda*/
-			 case 2:closewin(&menus[2]);showinfo();/*mostrar informa‡äes*/
+			 case 2:closewin(&menus[2]);showinfo();/*mostrar informaï¿½ï¿½es*/
 					 }
 			}
 			}
@@ -340,7 +340,7 @@ void controlmenu()
 void welcome()
 {
   struct win welcomes={ 14,10,65,40,GREEN,YELLOW,BLUE,BLACK,RED, "Bemvindo",DUPLO,NULL };
-  openwin(&welcomes);
+  openwin(&welcomes, aNO);  /* BUG FIX: added missing anim arg */
   gotoxy(1,15);
   centra("Bemvindo ao programa!",53);
   gxy(1,wherey()+1);
@@ -363,7 +363,7 @@ int main()
 	drawscreen();
 
 
-	openwin(&middle);
+	openwin(&middle, aNO);  /* BUG FIX: added missing anim arg */
 	welcome();
 	controlmenu();
 	return 0;

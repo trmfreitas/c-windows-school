@@ -1,7 +1,6 @@
 #include <stdio.h>
-#include <conio.h>
 #include <string.h>
-#include "k:\esc0.61\winc.h"
+#include "WINC.H"
 
 struct win janela={10,4,70,45,BLUE,WHITE,BLUE,YELLOW,WHITE, " Trabalho \0",DUPLO,NULL };
 struct win ambiente={1,1,79,49,BLACK,WHITE,BLACK,RED,CYAN, " Ambiente de Trabalho \0",SIMPLES,NULL };
@@ -37,7 +36,7 @@ void inserir()
 	clrscr();
 	cprintf("Inserir Artigo");
 	gotoxy(3,5);
-	cprintf("C¢digo Artigo: ");
+	cprintf("Cï¿½digo Artigo: ");
 	if ((fartigo=fopen("artigos.dat","rb+"))!=NULL)
 	{
 	do
@@ -63,7 +62,7 @@ void inserir()
 				 else flag=0;
 			 }
 		 }
-		 else if (msgbox(OK|CANCEL,ERRO,"Introduza um C¢digo Artigo",aHORIZ)==bCANCELADO) return;
+		 else if (msgbox(OK|CANCEL,ERRO,"Introduza um Cï¿½digo Artigo",aHORIZ)==bCANCELADO) return;
 
 	}
 	while (flag);
@@ -72,14 +71,14 @@ void inserir()
 	cprintf("Nome: "); tmp=cgets(artigos.nome);
 	strcpy(artigos.nome,tmp);
 	gotoxy(3,9);
-	cprintf("Pre‡o Unidade: ");scanf("%f",&artigos.pr_unit);
+	cprintf("Preï¿½o Unidade: ");scanf("%f",&artigos.pr_unit);
 	gotoxy(6,12);
 	if (msgbox(OK|CANCEL,INFO,"Deseja Adicionar?",aOBLIQ)==bOK)
 	{
 		fseek(fartigo,0,SEEK_END);
 		fwrite(&artigos, sizeof(artigos), 1, fartigo);
-		fclose(fartigo);
 	}
+	fclose(fartigo);   /* BUG FIX: was inside the if-branch; file now always closed */
 	}
 	 else
 		 if ((fartigo=fopen("artigos.dat","wb+"))==NULL) exit(2);
@@ -100,7 +99,7 @@ void minserir()
 	clrscr();
 	cprintf("Inserir Movimento");
 	gotoxy(3,5);
-	cprintf("C¢digo Artigo: ");
+	cprintf("Cï¿½digo Artigo: ");
 	if ((fartigo=fopen("artigos.dat","rb+"))!=NULL)
 	{
 	do
@@ -124,7 +123,7 @@ void minserir()
 			 if (flag==1)
 			   if (msgbox(OK|CANCEL,ERRO,"Artigo Inexistente\nIntroduza outro.",aHORIZ)==bCANCELADO) return;
 		 }
-		 else msgbox(OK,ERRO,"Introduza um C¢digo Artigo",aHORIZ);
+		 else msgbox(OK,ERRO,"Introduza um Cï¿½digo Artigo",aHORIZ);
 
 	}
 	while (flag);
@@ -132,9 +131,9 @@ void minserir()
 	gotoxy(3,7);
 	cprintf("Data: "); scanf("%d/%d/%d",&movimentos.data_nasc.dia,&movimentos.data_nasc.mes,&movimentos.data_nasc.ano);
 	gotoxy(3,9);
-	cprintf("Quantidade: ");scanf("%f",&movimentos.qtd);
+	cprintf("Quantidade: ");scanf("%d",&movimentos.qtd);   /* BUG FIX: was %f but qtd is int */
 	gotoxy(3,11);
-	cprintf("Pre‡o Unidade: ");scanf("%f",&movimentos.pr_unit);
+	cprintf("Preï¿½o Unidade: ");scanf("%f",&movimentos.pr_unit);
 	if (msgbox(OK|CANCEL,INFO,"Deseja Adicionar?",aHORIZ)==bOK)
 	{
 		if ((fmovimento=fopen("movimentos.dat","rb+"))==NULL) exit(2);
@@ -171,7 +170,7 @@ void listar()
 			 gotoxy(3,wherey());
 			 cprintf("Nome: %s\r\n",artigos.nome);
 			 gotoxy(3,wherey());
-			 cprintf("Pre‡o %f\r\n",artigos.pr_unit);
+			 cprintf("Preï¿½o %f\r\n",artigos.pr_unit);
 		 }
 		 fclose(fartigo);
 	}
@@ -197,7 +196,7 @@ void listarm()
 			 gotoxy(3,wherey());
 			 cprintf("Quantidade %d\r\n",movimentos.qtd);
 			 gotoxy(3,wherey());
-			 cprintf("Pre‡o Unidade %f\r\n",movimentos.pr_unit);
+			 cprintf("Preï¿½o Unidade %f\r\n",movimentos.pr_unit);
 		 }
 		 fclose(fmovimento);
 	}

@@ -2,7 +2,244 @@
 
 A DOS-based windowing library and demo applications written in C, developed as a school project around 2002/2003.
 
-> **Note:** This is a vintage school project written for **Turbo C 3** on **MS-DOS**, targeting the old DOS text-mode console. It will not compile or run on modern systems without a DOS emulator (e.g. DOSBox) and Turbo C 3.
+> **Ported to modern systems.** The library now compiles and runs on any Linux/macOS system with `gcc` and `libncursesw`. See the **Building** section below.
+
+---
+
+## Author
+
+**Tiago Freitas** — 12º I1, Colégio de Gaia, 2002/2003  
+📧 mephist@programmer.net
+
+---
+
+## Project Overview
+
+This project implements a **windowing framework for C in text mode**, providing:
+
+- Bordered, titled windows with open/close animations
+- Window save/restore (background preservation)
+- Message boxes with configurable buttons and types
+- Text utilities (word counting, multi-line strings, centering)
+- A menu bar system
+- A complete working demo application (task manager)
+- Two historic student/article management applications
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install libncursesw5-dev gcc make
+
+# Fedora/RHEL
+sudo dnf install ncurses-devel gcc make
+
+# macOS (Homebrew)
+brew install ncurses
+```
+
+### Build and run
+
+```bash
+make        # compiles the demo application
+make run    # builds and launches the demo
+```
+
+The demo is a simple in-memory **task manager** that exercises the full library:
+windows, animations, message boxes, menus, colours, and input.
+
+---
+
+## Repository Structure
+
+| File | Description |
+|------|-------------|
+| `winc_compat.h` | **New** — ncurses compatibility layer header |
+| `winc_compat.c` | **New** — ncurses implementation of the Turbo C console API |
+| `WINC.H` | Public API header — include this in your project |
+| `WINC.C` | (stub — all content moved to WINC.H / winc_compat.h) |
+| `WINDOWS.C` | Window engine: open, close, move, save, restore, message box |
+| `TEXT.C` | Text utilities: word/line parsing, centering, menus, input |
+| `SAMPLE.C` | **New** — fully working task-manager demo application |
+| `Makefile` | **New** — builds everything with a single `make` |
+| `TEXTO.C` | Earlier/alternate version of the text utilities |
+| `HELP.C` / `HELP.txt` | Library usage documentation (original) |
+| `ALNM.C` | Historic demo: student management system with menu bar UI |
+| `TRABANEW.C` | Historic demo: article/movement file management |
+| `TTRABL.C` | Earlier version of the article/movement management app |
+| `TRAB2.C` | Student records file management (binary file I/O) |
+| `NOVO.C` | Article catalogue with union-based article types |
+| `TEMP.C` | Scratch file: prints extended ASCII characters |
+| `TEMP2.C` | Scratch file: demonstrates screen save/restore |
+| `TECLAS.CPP` | Scratch file: prints key scan codes |
+| `SNIFSNIF.C` | Scratch file: reads raw video memory |
+| `WINC.PRJ` | Original Turbo C project file |
+| `WINC.DSK` | Original Turbo C desktop state file |
+
+---
+
+## The Windowing Library
+
+### Setup
+
+```c
+#include "WINC.H"
+```
+
+### Window Structure
+
+```c
+struct win mywindow = {
+    x, y, x1, y1,          /* position (top-left to bottom-right, 1-based) */
+    cb, cf,                 /* window background & foreground colour         */
+    bb, bf,                 /* border  background & foreground colour        */
+    titcolor,               /* title colour                                  */
+    "Window Title",         /* title string                                  */
+    SIMPLES,                /* border style (SIMPLES or DUPLO)               */
+    NULL, {0}               /* internal — always leave as NULL, {0}          */
+};
+```
+
+### Border Styles
+
+| Constant | Style |
+|----------|-------|
+| `SIMPLES` | Single-line border (`┌─┐│└┘`) via ACS line-drawing |
+| `DUPLO`   | Double-line border (`╔═╗║╚╝`) via Unicode wide characters |
+
+### Window Animations
+
+| Constant | Effect |
+|----------|--------|
+| `aNO`    | No animation |
+| `aHORIZ` | Horizontal expansion |
+| `aVERT`  | Vertical expansion |
+| `aOBLIQ` | Diagonal expansion |
+
+### Speed constants: `vMRAPIDO`, `vRAPIDO`, `vMEDIO`, `vLENTO`
+
+### Key Functions
+
+```c
+/* Open a window (saves background, draws border, sets focus) */
+int openwin(struct win *wind, int anim);
+
+/* Close a window (restores background) */
+int closewin(struct win *wind);
+
+/* Set focus to a window (sets colour/coordinate context) */
+void selectwin(struct win wind);
+
+/* Move a window to a new position */
+int movewin(struct win *wind, int x, int y);
+
+/* Display a message box */
+int msgbox(char botoes, int tipo, char *mensagem, char anim);
+```
+
+### Message Box
+
+```c
+/* Buttons (combine with |) */
+OK | CANCEL | ABORTAR | REPETIR
+
+/* Types */
+INFO        /* Information                 */
+CRITIC      /* Critical information        */
+ERRO        /* Error                       */
+CRITICERRO  /* Critical error              */
+
+/* Example */
+if (msgbox(OK | CANCEL, ERRO, "Something went wrong!\nTry again?", aHORIZ) == bOK) { … }
+
+/* Return values */
+bOK, bCANCELADO, bABORTADO, bREPETIDO
+```
+
+---
+
+## Text & Menu Utilities (`TEXT.C`)
+
+```c
+int   getpalavras(char *texto);               /* count words (supports 'multi word' groups) */
+char *getpalavra(int num, char *texto);        /* get word by index      — caller must free() */
+int   getpalavrapos(int num, char *linha);     /* get char offset of word                    */
+int   getlines(char *texto);                   /* count lines in a multi-line string          */
+char *winc_getline(int num, char *texto);      /* get a line by index    — caller must free() */
+int   centra(char *s, int tam);                /* centre-print a string                       */
+void  gotoop(int pos, char *s, int cb, int cf);/* highlight a menu item                       */
+int   callmenu(int *pos, char *s, int cb, int cf); /* interactive menu bar                  */
+char  leitura(char *v);                        /* read one char from an allowed set           */
+```
+
+**Multi-word groups** are enclosed in single quotes, e.g.:
+```
+'Insert Article'  List  Exit
+```
+
+---
+
+## Bug Fixes
+
+The following bugs in the original source were corrected:
+
+| File | Bug | Fix |
+|------|-----|-----|
+| `WINDOWS.C` | `loadwin` restored with `y1` instead of `y1+1`, corrupting saved region | Use `y1+1` consistently |
+| `WINDOWS.C` | `createawin`: `aOBLIQ` fell through to `aNO`, drawing final frame twice | Added missing `break` |
+| `WINDOWS.C` | `createwin`: `NULL` check used `!= '\0'` (pointer vs char) | Use `!= NULL` |
+| `WINDOWS.C` | `msgbox`: `barraops[strlen(barraops)]` reads one byte past the null terminator | Use `strlen - 1` |
+| `WINDOWS.C` | `msgbox` / `gotoop`: `getpalavra()` result never freed → memory leak | `free()` after use |
+| `WINDOWS.C` | `movewin`: wrong buffer size; saved background at old (already erased) position | Full rewrite |
+| `TEXT.C`    | `leitura`: `tolower()` return value discarded → case comparison always wrong | Assign result |
+| `TEXT.C`    | `getpalavrapos`: `getpalavra()` result leaked; `strstr` result not NULL-checked | `free()` + guard |
+| `TEXT.C`    | `getline` conflicts with POSIX `getline` in `<stdio.h>` | Renamed to `winc_getline` |
+| `ALNM.C`    | `msgbox(OK, CYAN, "…")` called with 3 args instead of 4 | Added `aNO` arg |
+| `ALNM.C`    | `case 27:` (ESC) in all three submenus fell through to `case 72:` (Up arrow) | Added `break` |
+| `ALNM.C`    | `openwin()` called with one arg throughout | Added `aNO` second arg |
+| `TRABANEW.C`| `scanf("%f", &movimentos.qtd)` reads float into `int` field | Changed to `%d` |
+| `TRABANEW.C`| `fartigo` not closed when user selects CANCEL in `ainserir()` | Moved `fclose` outside branch |
+
+---
+
+## Demo Applications
+
+### `SAMPLE.C` — Task Manager (new)
+
+A complete, working demo built with the ported library:
+- DUPLO-bordered main window
+- Four-item menu: Add Task / View Tasks / Delete / About / Quit
+- Animated sub-windows with SIMPLES borders
+- Message boxes (INFO, ERRO, CRITICERRO types, various button sets)
+- In-memory task list (up to 20 items)
+
+### `ALNM.C` — Student System (historic)
+
+Full-screen application with a top menu bar and dropdown submenus.
+Most submenu actions are stubs — this was a UI prototype.
+
+### `TRABANEW.C` — Article & Movement Manager (historic)
+
+Windowed application for managing articles and sales movements using
+binary file storage (`artigos.dat`, `movimentos.dat`).
+
+---
+
+## Building (original DOS/Turbo C)
+
+This project originally targeted **Turbo C 3** on **MS-DOS**.
+
+1. Install [DOSBox](https://www.dosbox.com/) and Turbo C 3.
+2. Mount your working directory inside DOSBox.
+3. Open `WINC.PRJ` in the Turbo C IDE.
+4. Press **F9** to compile and build.
+
+> The include paths in `WINC.PRJ` are hardcoded to `K:\TC3\INCLUDE` and `K:\TC3\LIB`. Adjust these in the IDE under **Options → Directories** if needed.
+
 
 ---
 
